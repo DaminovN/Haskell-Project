@@ -1,9 +1,9 @@
 # check-helper
 
-1) Give path to student project (inside app/Main.hs)
+1) stack build
 
-2) Specify homework needed (inside app/Main.hs)
+2) stack exec check-helper-exe "{path_to_student_solution}" "{hwX}"
 
-3) stack build
-
-4) stack exec check-helper-exe
+example: 
+stack build
+stack exec check-helper-exe "Desktop/University/fp-homework" "hw1"
