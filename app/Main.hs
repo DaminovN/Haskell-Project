@@ -17,10 +17,10 @@ createDir fp = getHomeDirectory >>= (appendPath fp) >>= (createDirectoryIfMissin
 
 main :: IO ()
 main = do
-	-- Change path needed
+    -- Change path needed
     let path_to_fp_hw = "Desktop/University/fp-homework"
     -- Change hw needed
-    let hw = "hw1"
+    let hw = "hw2"
     -- create temp dir
     removeTempDir
     createDir "temp_dir"
@@ -50,8 +50,9 @@ main = do
     waitForProcess r
     (_, _, _, r) <- createProcess(shell $ "rm " ++ project_temp_cabal_path)
     waitForProcess r
+    -- run tests
     let run_tests = "cd " ++ project_path ++ " && stack test " ++ hw
     (_, _, _, r) <- createProcess(shell run_tests)
     waitForProcess r
-    -- return ()
+    return ()
     -- copyFile old_path new_path

@@ -1,4 +1,4 @@
-test-suite hw2-test
+test-suite hw2-ttest
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             TSpec.hs
