@@ -2,6 +2,7 @@ module Main where
 
 import Lib
 
+import System.Environment
 import System.Directory
 import System.FilePath
 import System.Process
@@ -15,12 +16,13 @@ removeTempDir = getHomeDirectory >>= (appendPath "temp_dir") >>= removePathForci
 createDir :: FilePath -> IO ()
 createDir fp = getHomeDirectory >>= (appendPath fp) >>= (createDirectoryIfMissing True)
 
+-- argument 1 path to student solution, example: "Desktop/University/fp-homework"
+-- argument 2 hw, example: "hw1"
 main :: IO ()
 main = do
-    -- Change path needed
-    let path_to_fp_hw = "Desktop/University/fp-homework"
-    -- Change hw needed
-    let hw = "hw2"
+    app_args <- getArgs
+    let path_to_fp_hw = app_args!!0
+    let hw = app_args!!1
     -- create temp dir
     removeTempDir
     createDir "temp_dir"
