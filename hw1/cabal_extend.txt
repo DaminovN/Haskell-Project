@@ -2,7 +2,7 @@ test-suite hw1-ttest
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             TSpec.hs
-  other-modules:       TTests.TTest1
+  other-modules:       TTests.TTest1 TTests.TTest2 TTests.TTest3
 
   build-depends:       base >=4.7 && <5
                      , hw1

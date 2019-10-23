@@ -32,6 +32,12 @@ testSmartReplicate xs = it (show xs) $ smartReplicate xs `shouldBe` correctSmart
 -- testContains :: (Show a, Foldable t, Eq a) => a -> [t a] -> Spec
 -- testContains v xs = it (show "x") $ (contains v xs) `shouldBe` (correctContains v xs)
 
+correctStringSum :: String -> Int
+correctStringSum s = sum $ map read (words s)
+
+testStringSum :: String -> Spec
+testStringSum s = it (show s) $ (stringSum s) `shouldBe` (correctStringSum s)
+
 spec :: Spec
 spec = do
   describe "Order 3 elements test" $ do
@@ -47,6 +53,9 @@ spec = do
     it "(2, 3, 4)" $ order3 tup1 `shouldBe` expectedTup1
   -- describe "contains test" $ do
   --   testContains 3 [[1..5], [2,0], [3,4]]
+  describe "stringSum test" $ do
+    testStringSum "1 1"
+    testStringSum "100\n\t-3"
   where
     expectedTup1 = (2, 3, 4)
     tup1 = (2, 3, 4)
