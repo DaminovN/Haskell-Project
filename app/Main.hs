@@ -75,3 +75,5 @@ main = do
     extend_content <- readFile cabal_extend_path
     appendFile project_cabal_path extend_content
 
+    print ("cd " ++ new_fp_hw_path ++ " && stack build --fast")
+    print ("cd " ++ new_fp_hw_path ++ " && stack test " ++ hw)

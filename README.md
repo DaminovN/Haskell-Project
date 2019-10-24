@@ -8,4 +8,4 @@ example:
 
 stack build
 
-stack exec check-helper-exe "Desktop/University/fp-homework" "hw1"
+stack exec check-helper-exe "/Users/daminovn/Desktop/University/fp-homework" "hw1"
