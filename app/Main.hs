@@ -4,8 +4,12 @@ import Lib
 
 import System.Environment
 import System.Directory
-import System.FilePath
+import System.FilePath((</>))
 import System.Process
+import Control.Applicative((<$>))
+import Control.Exception(throw)
+import Control.Monad(when,forM_)
+import System.IO
 
 appendPath :: String -> FilePath -> IO FilePath
 appendPath rest_path fp = return $ fp </> rest_path
@@ -16,7 +20,33 @@ removeTempDir = getHomeDirectory >>= (appendPath "temp_dir") >>= removePathForci
 createDir :: FilePath -> IO ()
 createDir fp = getHomeDirectory >>= (appendPath fp) >>= (createDirectoryIfMissing True)
 
--- argument 1 path to student solution, example: "Desktop/University/fp-homework"
+
+
+copyDir ::  FilePath -> FilePath -> IO ()
+copyDir src dst = do
+  whenM (not <$> doesDirectoryExist src) $
+    throw (userError "source does not exist")
+  whenM (doesFileOrDirectoryExist dst) $
+    throw (userError "destination already exists")
+
+  createDirectory dst
+  content <- getDirectoryContents src
+  let xs = filter (`notElem` [".", ".."]) content
+  forM_ xs $ \name -> do
+    let srcPath = src </> name
+    let dstPath = dst </> name
+    isDirectory <- doesDirectoryExist srcPath
+    if isDirectory
+      then copyDir srcPath dstPath
+      else copyFile srcPath dstPath
+
+  where
+    doesFileOrDirectoryExist x = orM [doesDirectoryExist x, doesFileExist x]
+    orM xs = or <$> sequence xs
+    whenM s r = s >>= flip when r
+
+
+-- argument 1 path to student solution, example: "/Users/daminovn/Desktop/University/fp-homework"
 -- argument 2 hw, example: "hw1"
 main :: IO ()
 main = do
@@ -27,34 +57,21 @@ main = do
     removeTempDir
     createDir "temp_dir"
     -- copy solution to a temp_dir
-    old_path <- getHomeDirectory >>= (appendPath path_to_fp_hw) 
-    new_path <- getHomeDirectory >>= (appendPath "temp_dir")
-    (_, _, _, r) <- createProcess (shell $ "cp -r " ++ old_path ++ " " ++ new_path)
-    waitForProcess r
+    new_fp_hw_path <- getHomeDirectory >>= (appendPath "temp_dir/fp-homework")
+    copyDir path_to_fp_hw new_fp_hw_path
+
     -- create test dir if needed
-    test_path <- getHomeDirectory >>= (appendPath "temp_dir/fp-homework") >>= (appendPath hw) >>= (appendPath "test")
+    let test_path = new_fp_hw_path </> hw </> "test"
     createDir test_path
     -- copy teacher tests
     spec_path <- getCurrentDirectory >>= (appendPath hw) >>= (appendPath "TSpec.hs")
-    (_, _, _, r) <- createProcess (shell $ "cp -r " ++ spec_path ++ " " ++ test_path)
-    waitForProcess r
+    copyFile spec_path (test_path </> "TSpec.hs")
     rest_spec_path <- getCurrentDirectory >>= (appendPath hw) >>= (appendPath "TTests")
-    (_, _, _, r) <- createProcess (shell $ "cp -r " ++ rest_spec_path ++ " " ++ test_path)
-    waitForProcess r
+    copyDir rest_spec_path (test_path </> "TTests")
+
     -- extend cabal file
-    project_path <- getHomeDirectory >>= (appendPath "temp_dir/fp-homework") >>= (appendPath hw)
-    project_cabal_path <- appendPath (hw ++ ".cabal") project_path
-    project_temp_cabal_path <- appendPath "temp.cabal" project_path
     cabal_extend_path <- getCurrentDirectory >>= (appendPath hw) >>= (appendPath "cabal_extend.txt")
-    (_, _, _, r) <- createProcess(shell $ "cat " ++ project_cabal_path ++ " " ++ cabal_extend_path ++ " > " ++ project_temp_cabal_path)
-    waitForProcess r
-    (_, _, _, r) <- createProcess(shell $ "cat " ++ project_temp_cabal_path ++ " > " ++ project_cabal_path)
-    waitForProcess r
-    (_, _, _, r) <- createProcess(shell $ "rm " ++ project_temp_cabal_path)
-    waitForProcess r
-    -- run tests
-    let run_tests = "cd " ++ project_path ++ " && stack test " ++ hw
-    (_, _, _, r) <- createProcess(shell run_tests)
-    waitForProcess r
-    return ()
-    -- copyFile old_path new_path
+    let project_cabal_path = new_fp_hw_path </> hw </> (hw ++ ".cabal")
+    extend_content <- readFile cabal_extend_path
+    appendFile project_cabal_path extend_content
+
